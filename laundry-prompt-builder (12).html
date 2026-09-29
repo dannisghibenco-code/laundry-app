@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Промпт для стирки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F1E7;
+    --surface:#FFFFFF;
+    --surface-2:#EFEADC;
+    --ink:#26323C;
+    --ink-soft:#5B6570;
+    --denim:#3E5A73;
+    --denim-dark:#2A3F52;
+    --denim-tint:#DCE4E9;
+    --suds:#6FA39A;
+    --suds-tint:#DEEBE8;
+    --clay:#C97B4A;
+    --clay-tint:#F3DFD2;
+    --line:#E3DCC9;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Work Sans',sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px 60px;
+  }
+  .wrap{width:100%;max-width:760px;}
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:32px;
+    margin:0 0 4px;
+    color:var(--denim-dark);
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--ink-soft);font-size:14.5px;margin-bottom:26px;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:22px;
+    box-shadow:0 1px 2px rgba(38,50,60,.03);
+  }
+  .card-title{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    font-weight:600;
+    color:var(--denim-dark);
+    margin:0 0 4px;
+  }
+  .card-hint{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
+
+  /* tabs */
+  .tabs-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .tabs{
+    display:flex;
+    gap:4px;
+    background:var(--surface-2);
+    border-radius:12px;
+    padding:4px;
+    width:max-content;
+    flex-wrap:wrap;
+    margin-bottom:0;
+  }
+  .data-io-bar{display:flex;gap:8px;flex-wrap:wrap;}
+  .tab-btn{
+    font-family:'Work Sans',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    padding:9px 16px;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .tab-btn.active{
+    background:var(--surface);
+    color:var(--denim-dark);
+    box-shadow:0 1px 2px rgba(38,50,60,.08);
+  }
+
+  #promptArea{
+    width:100%;
+    min-height:560px;
+    resize:vertical;
+    padding:20px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--surface-2);
+    color:var(--ink);
+    font-family:'JetBrains Mono', monospace;
+    font-size:14.5px;
+    line-height:1.75;
+    white-space:pre-wrap;
+  }
+  #promptArea:focus{outline:2px solid var(--denim);outline-offset:1px;}
+
+  /* rendered preview */
+  #promptPreview{
+    padding:22px 24px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--surface-2);
+    color:var(--ink);
+    font-size:15px;
+    line-height:1.65;
+    max-height:640px;
+    overflow-y:auto;
+  }
+  #promptPreview h1, #promptPreview h2, #promptPreview h3{
+    font-family:'Fraunces',serif;
+    color:var(--denim-dark);
+    margin:20px 0 8px;
+  }
+  #promptPreview h1{font-size:22px;}
+  #promptPreview h2{font-size:19px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+  #promptPreview h3{font-size:16px;}
+  #promptPreview h2:first-child, #promptPreview h1:first-child{margin-top:0;}
+  #promptPreview p{margin:8px 0;}
+  #promptPreview strong{color:var(--denim-dark);}
+  #promptPreview code{
+    background:var(--denim-tint);
+    color:var(--denim-dark);
+    padding:1px 6px;
+    border-radius:5px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+  }
+  #promptPreview pre{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    overflow-x:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    line-height:1.7;
+  }
+  #promptPreview pre code{background:none;padding:0;color:var(--ink);}
+  #promptPreview ul, #promptPreview ol{margin:6px 0;padding-left:22px;}
+  #promptPreview li{margin:3px 0;}
+  #promptPreview .num-item{display:flex;gap:8px;margin:3px 0;}
+  #promptPreview .num-item .n{font-weight:700;color:var(--denim);flex-shrink:0;}
+  #promptPreview hr{border:none;border-top:1px solid var(--line);margin:20px 0;}
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:14px;
+    align-items:center;
+  }
+  .btn{
+    font-family:'Work Sans',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    border:none;
+    border-radius:999px;
+    padding:13px 22px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn-primary{background:var(--denim);color:#fff;box-shadow:0 6px 16px rgba(42,63,82,.25);}
+  .btn-primary:hover{background:var(--denim-dark);}
+  .btn-ghost{background:var(--surface-2);color:var(--ink);}
+  .btn-ghost:hover{background:var(--line);}
+  .btn-suds{background:var(--suds);color:#fff;}
+  .btn-sm{padding:8px 14px;font-size:13px;border-radius:999px;}
+  .btn-icon{
+    background:none;border:none;cursor:pointer;font-size:15px;
+    color:var(--ink-soft);padding:4px 6px;border-radius:6px;
+  }
+  .btn-icon:hover{background:var(--line);color:var(--ink);}
+  .btn-icon.danger:hover{color:var(--clay);}
+
+  .toast{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:13.5px;
+    color:var(--suds);
+    font-weight:600;
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .toast.show{opacity:1;}
+
+  /* form */
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .grid .full{grid-column:1 / -1;}
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr;}
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input[type=text], .field select, .field textarea{
+    width:100%;
+    padding:12px 13px;
+    border:1px solid var(--line);
+    border-radius:11px;
+    background:var(--surface-2);
+    font-family:'Work Sans',sans-serif;
+    font-size:15px;
+    color:var(--ink);
+  }
+  .field input[type=text]:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--denim);}
+  .field .custom-input{margin-top:8px;display:none;}
+  .field .custom-input.show{display:block;}
+
+  .field select.field-state-empty,
+  .field input.custom-input.field-state-empty{
+    border-color:var(--clay);
+    background:var(--clay-tint);
+  }
+  .field select.field-state-filled,
+  .field input.custom-input.field-state-filled{
+    border-color:var(--suds);
+    background:var(--suds-tint);
+  }
+  .extra-textarea{
+    resize:vertical;
+    min-height:64px;
+    font-family:'Work Sans',sans-serif;
+    line-height:1.5;
+  }
+
+  .danger-zone{
+    border:1px dashed var(--clay);
+    border-radius:14px;
+    padding:12px 16px;
+    margin-bottom:16px;
+    background:rgba(201,123,74,0.05);
+  }
+  .danger-zone summary{
+    cursor:pointer;
+    font-weight:600;
+    color:var(--clay);
+    font-size:13.5px;
+    list-style:none;
+  }
+  .danger-zone summary::-webkit-details-marker{display:none;}
+  .danger-zone summary::before{content:"▸ ";}
+  .danger-zone[open] summary::before{content:"▾ ";}
+  .danger-zone-body{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid rgba(201,123,74,0.3);
+  }
+  .danger-zone-body p{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin:0 0 10px;
+  }
+  .danger-zone-body #saveTemplateBtn{
+    border:1px solid var(--clay);
+    color:var(--clay);
+  }
+  .danger-zone-body #saveTemplateBtn:hover{background:var(--clay-tint);}
+
+  footer{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:12px;
+    margin-top:10px;
+  }
+
+  /* library tab */
+  #libraryTab{display:none;}
+  .lib-toolbar{
+    display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:10px;margin-bottom:14px;
+  }
+  .lib-toolbar .left{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-soft);}
+  .lib-toolbar .left input[type=checkbox]{width:16px;height:16px;}
+  .lib-empty{
+    padding:32px 20px;text-align:center;color:var(--ink-soft);font-size:13.5px;
+    border:1px dashed var(--line);border-radius:14px;background:var(--surface-2);
+  }
+  .lib-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:12px;
+  }
+  .lib-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 14px 12px 42px;
+    cursor:pointer;
+    transition:box-shadow .12s ease, border-color .12s ease;
+  }
+  .lib-card:hover{box-shadow:0 3px 10px rgba(38,50,60,.09);border-color:var(--denim-tint);}
+  .lib-card input[type=checkbox]{
+    position:absolute;top:15px;left:14px;width:17px;height:17px;cursor:pointer;
+    z-index:2;
+    outline:3px solid var(--surface);
+    border-radius:4px;
+  }
+  .lib-card .lib-delete{
+    position:absolute;top:8px;right:8px;
+    z-index:2;
+    background:var(--surface);
+  }
+  .lib-name{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--denim-dark);padding-right:20px;}
+  .lib-color-tag{
+    display:inline-block;
+    margin-top:7px;
+    font-size:11.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    color:var(--denim-dark);
+    background:var(--denim-tint);
+    padding:3px 10px;
+    border-radius:999px;
+  }
+  .lib-details{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;color:var(--ink-soft);
+    margin-top:6px;line-height:1.65;
+    word-break:break-word;
+  }
+  .lib-card-edit-hint{
+    font-size:11px;color:var(--ink-soft);margin-top:10px;opacity:.7;
+  }
+  .float-lib-btn{
+    position:fixed;
+    top:20px;right:20px;
+    z-index:200;
+    background:var(--denim);
+    color:#fff;
+    border:none;
+    border-radius:999px;
+    padding:12px 20px;
+    font-family:'Work Sans',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(42,63,82,.3);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .float-lib-btn:hover{background:var(--denim-dark);}
+  .float-lib-btn .badge{
+    background:rgba(255,255,255,.25);
+    border-radius:999px;
+    padding:1px 8px;
+    font-size:12px;
+  }
+  @media (max-width:560px){
+    .float-lib-btn{top:10px;right:10px;padding:10px 14px;font-size:13px;}
+  }
+
+  .lib-grid-wrap{
+    max-height:520px;
+    overflow-y:auto;
+    padding:4px 4px 4px 0;
+    margin:-4px -4px -4px 0;
+  }
+
+  /* modal for viewing / editing a saved item card */
+  .modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(38,50,60,.5);
+    display:none;
+    align-items:center;justify-content:center;
+    z-index:1000;
+    padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    background:var(--surface);
+    border-radius:18px;
+    width:100%;max-width:560px;
+    max-height:88vh;
+    overflow-y:auto;
+    box-shadow:0 24px 64px rgba(20,28,36,.3);
+  }
+  .modal-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 22px;border-bottom:1px solid var(--line);
+  }
+  .modal-header h3{
+    font-family:'Fraunces',serif;margin:0;color:var(--denim-dark);font-size:19px;
+  }
+  .modal-body{padding:20px 22px;}
+  .modal-footer{
+    display:flex;gap:10px;align-items:center;
+    padding:16px 22px;border-top:1px solid var(--line);
+  }
+  .modal-footer .spacer{margin-left:auto;}
+
+  .ai-helper-bar{
+    padding:14px 22px;
+    border-top:1px solid var(--line);
+    background:var(--suds-tint);
+  }
+  .ai-helper-text{
+    font-size:12.5px;
+    color:var(--denim-dark);
+    line-height:1.5;
+    margin-bottom:10px;
+  }
+  .ai-helper-row{display:flex;align-items:center;gap:10px;}
+
+  .import-summary{
+    background:var(--surface-2);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13.5px;
+    color:var(--ink);
+    line-height:1.7;
+  }
+  .import-summary b{color:var(--denim-dark);}
+  .import-choice{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-top:10px;
+    cursor:pointer;
+  }
+  .import-choice input[type=radio]{margin-top:3px;width:16px;height:16px;flex-shrink:0;}
+  .import-choice label{font-size:13px;line-height:1.5;color:var(--ink);cursor:pointer;}
+
+  .photo-box{
+    position:relative;
+    border:2px dashed var(--line);
+    border-radius:12px;
+    background:var(--surface-2);
+    min-height:120px;
+    padding:14px;
+    outline:none;
+  }
+  .photo-box:focus{border-color:var(--denim);}
+  .photo-placeholder{
+    color:var(--ink-soft);font-size:13px;line-height:1.5;
+    min-height:92px;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+  }
+  .photo-thumbs{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(96px, 1fr));
+    gap:10px;
+  }
+  .photo-thumb-item{
+    position:relative;
+    border-radius:10px;
+    overflow:hidden;
+    height:96px;
+    background:var(--surface);
+    border:1px solid var(--line);
+  }
+  .photo-thumb-item.is-cover{border-color:var(--denim);}
+  .photo-thumb-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  .photo-cover-badge{
+    position:absolute;bottom:0;left:0;right:0;
+    background:rgba(42,63,82,.75);color:#fff;
+    font-size:10px;text-align:center;padding:2px 0;
+    letter-spacing:.03em;text-transform:uppercase;
+  }
+  .photo-thumb-remove{
+    position:absolute;top:4px;right:4px;
+    background:rgba(255,255,255,.9);border:none;
+    width:20px;height:20px;border-radius:50%;
+    font-size:11px;line-height:1;cursor:pointer;color:var(--clay);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .photo-add-more{
+    height:96px;border:2px dashed var(--line);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    font-size:11.5px;color:var(--ink-soft);line-height:1.4;
+  }
+
+  .field-hint{font-size:11px;color:var(--ink-soft);margin-top:6px;}
+
+  .lib-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .lib-tag{
+    font-size:11px;font-weight:600;
+    background:var(--suds-tint);color:var(--suds);
+    padding:2px 9px;border-radius:999px;
+  }
+  .lib-notes-note{
+    margin-top:8px;
+    font-size:11.5px;
+    color:var(--denim-dark);
+    background:var(--denim-tint);
+    padding:6px 9px;
+    border-radius:8px;
+    line-height:1.4;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .lib-extra-note{
+    margin-top:8px;
+    font-size:11.5px;
+    color:var(--clay);
+    background:var(--clay-tint);
+    padding:6px 9px;
+    border-radius:8px;
+    line-height:1.4;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+
+  .filter-panel{
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--surface-2);
+    padding:12px 16px;
+    margin-bottom:14px;
+  }
+  .filter-panel summary{
+    cursor:pointer;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--denim-dark);
+    list-style:none;
+    display:flex;align-items:center;gap:8px;
+  }
+  .filter-panel summary::-webkit-details-marker{display:none;}
+  .filter-panel-body{margin-top:12px;}
+  .filter-hint{font-size:11.5px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5;}
+  .filter-badge{
+    background:var(--denim);color:#fff;
+    font-size:11px;font-weight:700;
+    padding:1px 8px;border-radius:999px;
+  }
+  .filter-group{margin-bottom:12px;}
+  .filter-group:last-child{margin-bottom:0;}
+  .filter-group-label{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+    color:var(--ink-soft);margin-bottom:6px;
+  }
+  .filter-chip-row{display:flex;flex-wrap:wrap;gap:7px;}
+
+  .tag-chip{
+    font-family:'Work Sans',sans-serif;
+    font-size:12px;font-weight:600;
+    background:var(--surface);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    padding:5px 12px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .tag-chip:hover{border-color:var(--denim-tint);}
+  .tag-chip.active{background:var(--denim);border-color:var(--denim);color:#fff;}
+  .tag-chip.excluded{background:var(--clay);border-color:var(--clay);color:#fff;text-decoration:line-through;}
+  .tag-chip-clear{background:none;border:none;color:var(--clay);text-decoration:underline;padding:5px 4px;}
+
+  .lib-thumb{
+    display:block;
+    width:calc(100% + 56px);
+    height:110px;
+    object-fit:cover;
+    margin:-14px -14px 10px -42px;
+    border-radius:14px 14px 0 0;
+    cursor:zoom-in;
+  }
+
+  .lightbox-overlay{
+    position:fixed;inset:0;
+    background:rgba(15,20,26,.9);
+    display:none;
+    align-items:center;justify-content:center;
+    z-index:3000;
+    padding:32px;
+  }
+  .lightbox-overlay.show{display:flex;}
+  .lightbox-overlay img{
+    max-width:100%;max-height:100%;
+    object-fit:contain;
+    border-radius:8px;
+    cursor:zoom-out;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .lightbox-close{
+    position:fixed;top:20px;right:20px;
+    background:rgba(255,255,255,.12);
+    border:none;color:#fff;
+    width:40px;height:40px;border-radius:50%;
+    font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    z-index:3001;
+  }
+  .lightbox-close:hover{background:rgba(255,255,255,.22);}
+  .photo-thumb-item img{cursor:zoom-in;}
+</style>
+</head>
+<body>
+<button class="float-lib-btn" id="floatLibBtn">🧺 Список вещей<span class="badge" id="floatLibCount">0</span></button>
+<div class="wrap">
+
+  <h1>Промпт для стирки</h1>
+  <div class="sub">Готовый запрос для ИИ — редактируй, копируй, добавляй вещи полями ниже.</div>
+
+  <div class="card">
+    <div class="card-title">Текст запроса</div>
+    <div class="card-hint" id="cardHint">«Просмотр» — красиво оформленный текст для чтения. «Исходный текст» — для правок. «Список вещей» — твой гардероб для стирки, хранится всегда.</div>
+
+    <div class="tabs-row">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabPreviewBtn">Просмотр</button>
+        <button class="tab-btn" id="tabSourceBtn">Исходный текст</button>
+        <button class="tab-btn" id="tabLibraryBtn">Список вещей</button>
+      </div>
+      <div class="data-io-bar">
+        <button class="btn btn-ghost btn-sm" id="exportDataBtn" title="Скачать файл со всеми данными: текст запроса, шаблон и все карточки">📤 Экспорт</button>
+        <button class="btn btn-ghost btn-sm" id="importDataBtn" title="Загрузить ранее экспортированный файл с данными">📥 Импорт</button>
+        <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;">
+      </div>
+    </div>
+
+    <div id="promptPreview"></div>
+    <textarea id="promptArea" spellcheck="false" style="display:none;"></textarea>
+
+    <div id="libraryTab">
+      <div class="lib-toolbar">
+        <div class="left">
+          <input type="checkbox" id="libSelectAll">
+          <label for="libSelectAll">Выбрать все</label>
+          <span id="libSelCount"></span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" id="libAddToggle">＋ Новая карточка</button>
+          <button class="btn btn-ghost btn-sm" id="libClearExtraBtn" title="Обнулить поле «Дополнительно» у всех карточек">🧹 Очистить все уточнения</button>
+          <button class="btn btn-suds btn-sm" id="libAddToPromptBtn" disabled>Добавить выбранные в промпт</button>
+          <span class="toast" id="libToast">Готово ✓</span>
+        </div>
+      </div>
+
+      <details class="filter-panel" id="filterPanel">
+        <summary>🔍 Фильтры <span class="filter-badge" id="filterActiveBadge" style="display:none;"></span></summary>
+        <div class="filter-panel-body">
+          <div class="filter-hint">Клик по варианту — показать только его. Ещё клик — исключить (НЕ). Третий клик — сбросить. Можно сочетать несколько фильтров сразу.</div>
+          <div id="filterGroups"></div>
+          <button type="button" class="btn btn-ghost btn-sm" id="filterResetAllBtn" style="margin-top:10px;">✕ Сбросить все фильтры</button>
+        </div>
+      </details>
+
+      <div class="lib-grid-wrap">
+        <div class="lib-grid" id="libraryList"></div>
+      </div>
+    </div>
+
+    <div class="toolbar" id="promptToolbar">
+      <button class="btn btn-primary" id="copyBtn">📋 Скопировать запрос</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Сбросить к шаблону</button>
+      <span class="toast" id="toast">Скопировано ✓</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Добавить вещь в запрос</div>
+    <div class="card-hint">Заполни поля и нажми «Добавить» — строка впишется в раздел «Мои вещи» в запросе выше и сохранится во вкладке «Список вещей». Если нужного варианта нет в списке — выбери «Свой вариант…» и впиши его сам.</div>
+
+    <div class="grid">
+      <div class="field full">
+        <label>Название вещи</label>
+        <input type="text" id="i_name" placeholder="Например: синяя рубашка Zara">
+      </div>
+
+      <div class="field">
+        <label>Тип</label>
+        <select id="i_type" data-custom-of="c_type">
+          <option>Постельное бельё</option>
+          <option>Полотенце</option>
+          <option>Рубашка / блузка</option>
+          <option>Футболка / майка</option>
+          <option>Джинсы / деним</option>
+          <option>Свитер / трикотаж</option>
+          <option>Нижнее бельё</option>
+          <option>Носки</option>
+          <option>Верхняя одежда</option>
+          <option>Деликатное (шёлк/кружево)</option>
+          <option>Спортивная одежда</option>
+          <option>Детская одежда</option>
+          <option>Прочее</option>
+          <option value="__custom__">✎ Свой вариант…</option>
+        </select>
+        <input type="text" class="custom-input" id="c_type" placeholder="Впиши свой тип">
+      </div>
+
+      <div class="field">
+        <label>Материал</label>
+        <select id="i_material" data-custom-of="c_material">
+          <option>Хлопок</option>
+          <option>Синтетика</option>
+          <option>Деним</option>
+          <option>Шерсть</option>
+          <option>Шёлк</option>
+          <option>Лён</option>
+          <option>Смесовая ткань</option>
+          <option>Флис</option>
+          <option value="__custom__">✎ Свой вариант…</option>
+        </select>
+        <input type="text" class="custom-input" id="c_material" placeholder="Впиши свой материал">
+      </div>
+
+      <div class="field">
+        <label>Цвет</label>
+        <select id="i_color" data-custom-of="c_color">
+          <option>белый</option>
+          <option>светлый</option>
+          <option>тёмный</option>
+          <option>чёрный</option>
+          <option>цветной</option>
+          <option value="__custom__">✎ Свой вариант…</option>
+        </select>
+        <input type="text" class="custom-input" id="c_color" placeholder="Впиши свой цвет">
+      </div>
+
+      <div class="field">
+        <label>Загрязнение</label>
+        <select id="i_dirt" data-custom-of="c_dirt">
+          <option>слабое</option>
+          <option selected>обычное</option>
+          <option>сильное</option>
+          <option value="__custom__">✎ Свой вариант…</option>
+        </select>
+        <input type="text" class="custom-input" id="c_dirt" placeholder="Впиши свой вариант">
+      </div>
+
+      <div class="field">
+        <label>Линяет</label>
+        <select id="i_bleed" data-custom-of="c_bleed">
+          <option value="нет" selected>нет</option>
+          <option value="да">да</option>
+          <option value="__custom__">✎ Свой вариант…</option>
+        </select>
+        <input type="text" class="custom-input" id="c_bleed" placeholder="Впиши свой вариант">
+      </div>
+
+      <div class="field">
+        <label>Деликатная вещь</label>
+        <select id="i_delicate" data-custom-of="c_delicate">
+          <option value="нет" selected>нет</option>
+          <option value="да">да</option>
+          <option value="__custom__">✎ Свой вариант…</option>
+        </select>
+        <input type="text" class="custom-input" id="c_delicate" placeholder="Впиши свой вариант">
+      </div>
+
+      <div class="field">
+        <label>Макс. температура по бирке</label>
+        <select id="i_temp" data-custom-of="c_temp">
+          <option>не знаю</option>
+          <option>20°</option>
+          <option>30°</option>
+          <option>40°</option>
+          <option>60°</option>
+          <option>90°</option>
+          <option value="__custom__">✎ Свой вариант…</option>
+        </select>
+        <input type="text" class="custom-input" id="c_temp" placeholder="Впиши свою температуру">
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-suds" id="addBtn">＋ Добавить в запрос</button>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);cursor:pointer;">
+        <input type="checkbox" id="saveToLibraryCb" checked style="width:16px;height:16px;">
+        сохранить карточку во «Список вещей»
+      </label>
+      <span class="toast" id="toast2">Добавлено ✓</span>
+    </div>
+  </div>
+
+  <details class="danger-zone">
+    <summary>⚠️ Опасная зона</summary>
+    <div class="danger-zone-body">
+      <p>Сохранить <b>текущий</b> текст запроса как новый шаблон по умолчанию. Именно к нему будет возвращать кнопка «Сбросить к шаблону» на этой странице впредь. Обычно это не нужно — используй только если осознанно хочешь поменять шаблон.</p>
+      <button class="btn btn-ghost btn-sm" id="saveTemplateBtn">💾 Сохранить текущий текст как шаблон</button>
+      <span class="toast" id="dzToast">Шаблон сохранён ✓</span>
+    </div>
+  </details>
+
+  <footer>Данные хранятся только в этом браузере на этом устройстве.</footer>
+</div>
+
+<div class="modal-overlay" id="cardModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Вещь</h3>
+      <button class="btn-icon" id="modalCloseBtn" title="Закрыть">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="ai-helper-bar">
+      <div class="ai-helper-text">Не уверен(а) в паре полей? Отметь, что точно знаешь, оставь остальное как есть — скопируй промпт-подсказку вместе с фото и вставь в ИИ, чтобы он предложил недостающее.</div>
+      <div class="ai-helper-row">
+        <button class="btn btn-ghost btn-sm" id="modalAiHelpBtn">🤖 Скопировать промпт для ИИ</button>
+        <span class="toast" id="modalToast">Готово ✓</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-suds" id="modalSaveBtn">Сохранить</button>
+      <button class="btn btn-ghost" id="modalCancelBtn">Отмена</button>
+      <button class="btn btn-ghost spacer" id="modalDeleteBtn" style="color:var(--clay);">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="importModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Импорт данных</h3>
+      <button class="btn-icon" id="importModalCloseBtn" title="Закрыть">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="importSummary" class="import-summary"></div>
+      <div class="field full" style="margin-top:6px;">
+        <label>Что делать с текущими данными в этом браузере?</label>
+        <div class="import-choice" id="importChoiceReplace">
+          <input type="radio" name="importMode" id="importModeReplace" value="replace" checked>
+          <label for="importModeReplace"><b>Заменить всё</b> — текст запроса, шаблон и карточки в этом браузере будут полностью заменены содержимым файла.</label>
+        </div>
+        <div class="import-choice" id="importChoiceMerge">
+          <input type="radio" name="importMode" id="importModeMerge" value="merge">
+          <label for="importModeMerge"><b>Только добавить карточки</b> — карточки из файла добавятся к уже существующим (как новые, дубликаты не проверяются), текст запроса и шаблон не изменятся.</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-suds" id="importConfirmBtn">Импортировать</button>
+      <button class="btn btn-ghost" id="importCancelBtn">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox-overlay" id="photoLightbox">
+  <button class="lightbox-close" id="lightboxCloseBtn" title="Закрыть">✕</button>
+  <img id="lightboxImg" src="" alt="Фото вещи на весь экран">
+</div>
+
+<script>
+const DEFAULT_PROMPT = `Ты — помощник по стирке. У меня стиральная машина Hotpoint-Ariston (серия RSPG/RSPD 723), загрузка до 7 кг. Ниже — полное описание её функционала и вещи, которые нужно постирать. Твоя задача: разбить вещи на минимально возможное число отдельных стирок (партий) так, чтобы ничего не испортить и не полиняло, а если всё влезает в одну безопасную стирку — оставить одну. Для каждой партии дай точные настройки машины.
+
+## Диск программ (1–14 + 2 доп. позиции)
+
+Ежедневные:
+1. Удаление пятен — 40°C, 1200 об/мин, макс. загрузка 4 кг
+2. Удаление пятен экспресс — 40°C, 1200 об/мин, 3.5 кг
+3. Хлопок — 40°C (можно поднять до 90°C), 1200 об/мин, 7 кг — для слабозагрязнённых белых и цветных тканей
+4. Синтетика — 40°C (можно до 60°C), 1000 об/мин, 3.5 кг, ~100 мин
+5. Быстрая стирка 30' — 30°C, 800 об/мин, 3 кг — освежение слабозагрязнённых вещей, НЕ для шерсти/шёлка/ручной стирки
+
+Специальные:
+6. Тёмные ткани — 40°C, 1200 об/мин, 4 кг
+7. Деликатное — 30°C, без отжима, 1 кг
+8. Шерсть — 40°C, 800 об/мин, 1.5 кг
+9. Эко хлопок — 60°C или 40°C, 1200 об/мин, 7 кг, ~175–200 мин — для сильнозагрязнённого хлопка
+10. Хлопок 20° — 20°C, 1200 об/мин, 7 кг
+
+Дополнительные:
+11. Детские вещи — 40°C, 1000 об/мин, 4 кг
+12. Антиаллергия — 60°C, 1200 об/мин, 4 кг
+13. Шёлк/занавески — 30°C, без отжима, 1 кг
+14. Пуховики — 30°C, 1000 об/мин, 1.5 кг
+
+Отдельные позиции на диске (не входят в 1–14):
+- Полоскание — только полоскание, отжим 1200 об/мин, 7 кг
+- Отжим + Слив — только отжим и слив, 1200 об/мин, 7 кг
+
+## Кнопки на панели
+
+- Температура — выбирается отдельной кнопкой, циклически. [Впиши сюда свои реальные значения, когда посмотришь на машину, например: Холодная, 20°, 30°, 40°, 60°, 90°]
+- Отжим — выбирается отдельной кнопкой, циклически. [Впиши сюда свои реальные значения, например: Без отжима, 400, 800, 1000, 1200 об/мин]
+- Деликатная / интенсивная стирка — отдельная кнопка-переключатель (значок футболки). Если её не нажимать — не активен ни один из двух режимов. Если нажать один раз — деликатная, второй раз — интенсивная, третий — выключается.
+- Доп. полоскание — добавляет дополнительное полоскание, полезно при аллергии на порошок или для очень грязных вещей.
+- Экономия времени — сокращает программу до 50%, только для слабозагрязнённых вещей.
+- Отсрочка пуска — таймер отложенного старта, на логику стирки не влияет.
+
+## Кювета для моющих средств
+
+Три отделения:
+- Отделение со звёздочкой (только жидкое моющее средство) — используется только если включена функция предварительной стирки.
+- Основное отделение «Стирка» — порошок или гель для основной стирки.
+- Отделение «Кондиционер» — кондиционер для белья.
+- Отдельная вставка для отбеливателя (пунктиром) — используется только с отбеливателем, отдельно от обычного порошка.
+
+## Правила сортировки вещей на партии (по важности)
+
+1. Цвет. Белое/светлое никогда не стирать с тёмным/чёрным. Вещи, которые линяют или явно "красящиеся" — всегда отдельная стирка, даже если больше ничего похожего нет.
+2. Деликатность материала. Шерсть, шёлк и вещи, явно помеченные как деликатные, всегда выделяются в отдельную партию (даже маленькую), независимо от цвета.
+3. Температура. Внутри уже разделённых по цвету/деликатности групп — объединяй вещи с одинаковой или совместимой максимальной температурой стирки (бери наименьшую безопасную температуру в группе).
+4. Загрузка. Не превышай указанную максимальную загрузку для выбранной программы (см. таблицу выше). Если группа больше по объёму — раздели её на несколько стирок этой же программой.
+5. Если после всех правил остаётся мало вещей для отдельной небольшой стирки — предупреди меня об этом и, если это безопасно, предложи добавить похожие вещи или отложить до следующего раза.
+
+## Что должен вернуть ИИ
+
+Для каждой получившейся партии стирки укажи:
+- Список вещей в этой партии
+- Номер и название программы на диске (или «Полоскание» / «Отжим + Слив», если применимо)
+- Температуру
+- Скорость отжима (или «без отжима»)
+- Нужно ли включать деликатную/интенсивную стирку, или оставить кнопку не нажатой
+- Куда и какое средство засыпать/наливать (порошок/гель/кондиционер/отбеливатель, в какое отделение)
+- Короткое объяснение, почему именно так (1–2 предложения)
+
+Если все вещи безопасно помещаются в одну стирку — так и скажи, не дели искусственно.
+
+---
+
+## ЧТО СТИРАЕМ
+
+Формат одной строки на вещь:
+
+[Название вещи] — тип: [тип]; материал: [материал]; цвет: [цвет]; загрязнение: [загрязнение]; линяет: [да/нет]; деликатная: [да/нет]; макс. температура по бирке: [значение или "не знаю"]
+
+Мои вещи:
+
+\`\`\`
+[вставляй сюда свои вещи в этом же формате, по одной строке на вещь]
+\`\`\``;
+
+const STORAGE_KEY = "laundry-prompt-v1";
+const TEMPLATE_KEY = "laundry-template-v1";
+function getResetTemplate(){
+  const custom = localStorage.getItem(TEMPLATE_KEY);
+  return custom !== null ? custom : DEFAULT_PROMPT;
+}
+const ITEMS_KEY = "laundry-items-v1";
+const textarea = document.getElementById("promptArea");
+const preview = document.getElementById("promptPreview");
+const libraryTab = document.getElementById("libraryTab");
+const promptToolbar = document.getElementById("promptToolbar");
+const cardHint = document.getElementById("cardHint");
+const HINTS = {
+  preview: "«Просмотр» — красиво оформленный текст для чтения. «Исходный текст» — для правок. «Список вещей» — твой гардероб для стирки, хранится всегда.",
+  library: "Здесь хранятся карточки вещей, которые ты добавлял(а) через форму ниже с отмеченной галочкой «сохранить». Нажми на карточку, чтобы отредактировать. Галочками слева выбери нужные и добавь их разом в текущий запрос."
+};
+
+/* ---------- lightweight markdown-ish renderer ---------- */
+function escapeHtml(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function escapeAttr(s){
+  return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function inlineFormat(s){
+  s = escapeHtml(s);
+  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  return s;
+}
+function renderMarkdown(src){
+  const lines = src.split("\n");
+  let html = "";
+  let i = 0;
+  let inCode = false;
+  let codeBuf = [];
+  let listBuf = null;
+
+  function flushList(){
+    if(!listBuf) return;
+    if(listBuf.type === "ul"){
+      html += "<ul>" + listBuf.items.map(it => `<li>${inlineFormat(it)}</li>`).join("") + "</ul>";
+    } else {
+      html += "<div class='num-list'>" + listBuf.items.map(it =>
+        `<div class="num-item"><span class="n">${escapeHtml(it.n)}.</span><span>${inlineFormat(it.text)}</span></div>`
+      ).join("") + "</div>";
+    }
+    listBuf = null;
+  }
+
+  while(i < lines.length){
+    const line = lines[i];
+
+    if(line.trim().startsWith("```")){
+      if(!inCode){
+        flushList();
+        inCode = true;
+        codeBuf = [];
+      } else {
+        inCode = false;
+        html += `<pre><code>${escapeHtml(codeBuf.join("\n"))}</code></pre>`;
+      }
+      i++; continue;
+    }
+    if(inCode){ codeBuf.push(line); i++; continue; }
+
+    const trimmed = line.trim();
+
+    if(trimmed === "---" || trimmed === "***"){
+      flushList();
+      html += "<hr>";
+      i++; continue;
+    }
+
+    let m;
+    if((m = trimmed.match(/^###\s+(.*)/))){
+      flushList();
+      html += `<h3>${inlineFormat(m[1])}</h3>`;
+      i++; continue;
+    }
+    if((m = trimmed.match(/^##\s+(.*)/))){
+      flushList();
+      html += `<h2>${inlineFormat(m[1])}</h2>`;
+      i++; continue;
+    }
+    if((m = trimmed.match(/^#\s+(.*)/))){
+      flushList();
+      html += `<h1>${inlineFormat(m[1])}</h1>`;
+      i++; continue;
+    }
+
+    if((m = trimmed.match(/^-\s+(.*)/))){
+      if(!listBuf || listBuf.type !== "ul"){ flushList(); listBuf = {type:"ul", items:[]}; }
+      listBuf.items.push(m[1]);
+      i++; continue;
+    }
+
+    if((m = trimmed.match(/^(\d+)\.\s+(.*)/))){
+      if(!listBuf || listBuf.type !== "num"){ flushList(); listBuf = {type:"num", items:[]}; }
+      listBuf.items.push({n:m[1], text:m[2]});
+      i++; continue;
+    }
+
+    if(trimmed === ""){
+      flushList();
+      i++; continue;
+    }
+
+    flushList();
+    html += `<p>${inlineFormat(line)}</p>`;
+    i++;
+  }
+  flushList();
+  if(inCode && codeBuf.length){
+    html += `<pre><code>${escapeHtml(codeBuf.join("\n"))}</code></pre>`;
+  }
+  return html;
+}
+function renderPreview(){
+  preview.innerHTML = renderMarkdown(textarea.value);
+}
+
+function loadPrompt(){
+  const saved = localStorage.getItem(STORAGE_KEY);
+  textarea.value = saved !== null ? saved : DEFAULT_PROMPT;
+  renderPreview();
+}
+function savePrompt(){
+  localStorage.setItem(STORAGE_KEY, textarea.value);
+  renderPreview();
+}
+textarea.addEventListener("input", savePrompt);
+loadPrompt();
+
+/* ---------- tabs ---------- */
+const tabPreviewBtn = document.getElementById("tabPreviewBtn");
+const tabSourceBtn = document.getElementById("tabSourceBtn");
+const tabLibraryBtn = document.getElementById("tabLibraryBtn");
+
+function setActiveTab(tab){
+  [tabPreviewBtn, tabSourceBtn, tabLibraryBtn].forEach(b => b.classList.remove("active"));
+  preview.style.display = "none";
+  textarea.style.display = "none";
+  libraryTab.style.display = "none";
+  promptToolbar.style.display = "flex";
+
+  if(tab === "preview"){
+    tabPreviewBtn.classList.add("active");
+    preview.style.display = "";
+    renderPreview();
+    cardHint.textContent = HINTS.preview;
+  } else if(tab === "source"){
+    tabSourceBtn.classList.add("active");
+    textarea.style.display = "";
+    cardHint.textContent = HINTS.preview;
+  } else if(tab === "library"){
+    tabLibraryBtn.classList.add("active");
+    libraryTab.style.display = "block";
+    promptToolbar.style.display = "none";
+    cardHint.textContent = HINTS.library;
+    renderLibrary();
+  }
+}
+tabPreviewBtn.addEventListener("click", ()=> setActiveTab("preview"));
+tabSourceBtn.addEventListener("click", ()=> setActiveTab("source"));
+tabLibraryBtn.addEventListener("click", ()=> setActiveTab("library"));
+
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  if(confirm("Сбросить текст запроса к шаблону? Текущие правки в тексте будут потеряны (список вещей во вкладке «Список вещей» сохранится).")){
+    textarea.value = getResetTemplate();
+    savePrompt();
+  }
+});
+
+document.getElementById("saveTemplateBtn").addEventListener("click", ()=>{
+  if(confirm("Сохранить текущий текст запроса как шаблон? Именно к нему будет возвращать кнопка «Сбросить к шаблону» впредь.")){
+    localStorage.setItem(TEMPLATE_KEY, textarea.value);
+    showToast(document.getElementById("dzToast"));
+  }
+});
+
+function showToast(el){
+  el.classList.add("show");
+  setTimeout(()=> el.classList.remove("show"), 1600);
+}
+
+document.getElementById("copyBtn").addEventListener("click", async ()=>{
+  try{
+    await navigator.clipboard.writeText(textarea.value);
+  }catch(e){
+    const wasHidden = textarea.style.display === "none";
+    textarea.style.display = "";
+    textarea.select();
+    document.execCommand("copy");
+    if(wasHidden) textarea.style.display = "none";
+  }
+  showToast(document.getElementById("toast"));
+});
+
+/* ---- custom "own variant" inputs for selects (reusable — also used for dynamic modal fields) ---- */
+function wireComboSelects(root){
+  root.querySelectorAll("select[data-custom-of]").forEach(sel => {
+    const customInput = document.getElementById(sel.dataset.customOf);
+    if(!customInput || sel.dataset.wired === "1") return;
+    sel.dataset.wired = "1";
+    sel.addEventListener("change", ()=>{
+      if(sel.value === "__custom__"){
+        customInput.classList.add("show");
+        customInput.focus();
+      } else {
+        customInput.classList.remove("show");
+        customInput.value = "";
+      }
+    });
+  });
+}
+wireComboSelects(document);
+function selectValue(selId, customId){
+  const sel = document.getElementById(selId);
+  if(sel.value === "__custom__"){
+    const custom = document.getElementById(customId).value.trim();
+    return custom || "не указано";
+  }
+  return sel.value;
+}
+
+/* ---- inserting a formatted line into the prompt text ---- */
+const PLACEHOLDER_LINE = "[вставляй сюда свои вещи в этом же формате, по одной строке на вещь]";
+
+function itemLineText(it){
+  let line = `${it.name} — тип: ${it.type}; материал: ${it.material}; цвет: ${it.color}; загрязнение: ${it.dirt}; линяет: ${it.bleed}; деликатная: ${it.delicate}; макс. температура по бирке: ${it.temp}`;
+  if(it.frequency && it.frequency !== "не указано"){
+    line += `; периодичность стирки: ${it.frequency}`;
+  }
+  if(it.notes && it.notes.trim()){
+    line += `; заметка: ${it.notes.trim()}`;
+  }
+  if(it.extra && it.extra.trim()){
+    line += `; дополнительно: ${it.extra.trim()}`;
+  }
+  return line;
+}
+
+function insertItemLine(line){
+  const text = textarea.value;
+  const anchor = "Мои вещи:";
+  const anchorIdx = text.indexOf(anchor);
+  if(anchorIdx === -1){
+    textarea.value = text + "\n" + line;
+    savePrompt();
+    return;
+  }
+  const firstFence = text.indexOf("```", anchorIdx);
+  const secondFence = text.indexOf("```", firstFence + 3);
+  if(firstFence === -1 || secondFence === -1){
+    textarea.value = text + "\n" + line;
+    savePrompt();
+    return;
+  }
+  let inner = text.slice(firstFence + 3, secondFence).trim();
+  if(inner === "" || inner === PLACEHOLDER_LINE){
+    inner = line;
+  } else {
+    inner = inner + "\n" + line;
+  }
+  textarea.value = text.slice(0, firstFence + 3) + "\n" + inner + "\n" + text.slice(secondFence);
+  savePrompt();
+}
+
+/* ---------- persistent items library ---------- */
+let items = [];
+let selectedIds = new Set();
+
+function loadItems(){
+  try{
+    items = JSON.parse(localStorage.getItem(ITEMS_KEY)) || [];
+  }catch(e){ items = []; }
+  // миграция карточек, сохранённых в старом формате
+  items.forEach(it => {
+    if(!Array.isArray(it.photos)){
+      it.photos = it.photo ? [it.photo] : [];
+    }
+    delete it.photo;
+    if(!Array.isArray(it.tags)) it.tags = [];
+    if(typeof it.extra !== "string") it.extra = "";
+    if(typeof it.notes !== "string") it.notes = "";
+    if(typeof it.frequency !== "string" || !it.frequency) it.frequency = "не указано";
+  });
+}
+function saveItems(){
+  localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
+}
+function makeId(){
+  return "it_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,7);
+}
+
+/* ---------- export / import all data ---------- */
+function formatBytes(n){
+  if(n < 1024) return n + " Б";
+  if(n < 1024*1024) return (n/1024).toFixed(1) + " КБ";
+  return (n/1024/1024).toFixed(2) + " МБ";
+}
+
+document.getElementById("exportDataBtn").addEventListener("click", ()=>{
+  const exportObj = {
+    app: "laundry-prompt-builder",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    prompt: localStorage.getItem(STORAGE_KEY),
+    template: localStorage.getItem(TEMPLATE_KEY),
+    items: items
+  };
+  let json;
+  try{
+    json = JSON.stringify(exportObj, null, 2);
+  }catch(e){
+    alert("Не получилось подготовить файл экспорта: " + e.message);
+    return;
+  }
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `laundry-data-export-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=> URL.revokeObjectURL(url), 2000);
+});
+
+let pendingImport = null;
+
+const importFileInput = document.getElementById("importFileInput");
+document.getElementById("importDataBtn").addEventListener("click", ()=> importFileInput.click());
+importFileInput.addEventListener("change", ()=>{
+  const file = importFileInput.files[0];
+  importFileInput.value = ""; // сбрасываем, чтобы можно было выбрать тот же файл повторно
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    let data;
+    try{
+      data = JSON.parse(ev.target.result);
+    }catch(e){
+      alert("Не получилось прочитать файл: это не корректный JSON.");
+      return;
+    }
+    if(!data || typeof data !== "object" || !Array.isArray(data.items)){
+      alert("Файл не похож на экспорт из этого приложения — не нашёл ожидаемых данных.");
+      return;
+    }
+    pendingImport = data;
+    openImportModal(data);
+  };
+  reader.onerror = ()=> alert("Не получилось прочитать файл.");
+  reader.readAsText(file, "utf-8");
+});
+
+const importModalOverlay = document.getElementById("importModalOverlay");
+function openImportModal(data){
+  const photoCount = data.items.reduce((sum, it) => sum + ((it.photos && it.photos.length) || (it.photo ? 1 : 0)), 0);
+  const dateStr = data.exportedAt ? new Date(data.exportedAt).toLocaleString("ru-RU") : "неизвестно";
+  document.getElementById("importSummary").innerHTML = `
+    В файле найдено:<br>
+    <b>${data.items.length}</b> карточек вещей (фото в них: ${photoCount} шт.)<br>
+    ${data.prompt ? "есть сохранённый текст запроса" : "текст запроса не сохранён в файле"}<br>
+    ${data.template ? "есть свой шаблон для сброса" : "своего шаблона в файле нет"}<br>
+    <span style="color:var(--ink-soft);">экспортировано: ${dateStr}</span>
+  `;
+  document.getElementById("importModeReplace").checked = true;
+  importModalOverlay.classList.add("show");
+}
+function closeImportModal(){
+  importModalOverlay.classList.remove("show");
+  pendingImport = null;
+}
+document.getElementById("importModalCloseBtn").addEventListener("click", closeImportModal);
+document.getElementById("importCancelBtn").addEventListener("click", closeImportModal);
+importModalOverlay.addEventListener("click", (e)=>{
+  if(e.target === importModalOverlay) closeImportModal();
+});
+
+document.getElementById("importConfirmBtn").addEventListener("click", ()=>{
+  if(!pendingImport) return;
+  const mode = document.getElementById("importModeReplace").checked ? "replace" : "merge";
+  const data = pendingImport;
+
+  try{
+    if(mode === "replace"){
+      if(typeof data.prompt === "string"){
+        localStorage.setItem(STORAGE_KEY, data.prompt);
+      }
+      if(typeof data.template === "string"){
+        localStorage.setItem(TEMPLATE_KEY, data.template);
+      } else {
+        localStorage.removeItem(TEMPLATE_KEY);
+      }
+      localStorage.setItem(ITEMS_KEY, JSON.stringify(data.items));
+      loadPrompt();
+      loadItems();
+    } else {
+      const incoming = data.items.map(it => Object.assign({}, it, { id: makeId() }));
+      items = items.concat(incoming);
+      saveItems();
+    }
+  }catch(e){
+    alert("Не получилось сохранить импортированные данные — возможно, они слишком большие для локального хранилища браузера (много фото). Попробуй импортировать карточки по частям.");
+    return;
+  }
+
+  if(tabLibraryBtn.classList.contains("active")) renderLibrary();
+  else document.getElementById("floatLibCount").textContent = items.length;
+
+  closeImportModal();
+  alert(mode === "replace" ? "Готово — все данные заменены." : "Готово — карточки добавлены к существующим.");
+});
+
+/* preset option lists — shared with the quick-add form's dropdowns */
+const TYPE_OPTIONS = ["Постельное бельё","Полотенце","Рубашка / блузка","Футболка / майка","Джинсы / деним","Свитер / трикотаж","Нижнее бельё","Носки","Верхняя одежда","Деликатное (шёлк/кружево)","Спортивная одежда","Детская одежда","Прочее"];
+const MATERIAL_OPTIONS = ["Хлопок","Синтетика","Деним","Шерсть","Шёлк","Лён","Смесовая ткань","Флис"];
+const COLOR_OPTIONS = ["белый","светлый","тёмный","чёрный","цветной"];
+const DIRT_OPTIONS = ["слабое","обычное","сильное"];
+const YESNO_OPTIONS = ["нет","да"];
+const YESNO_UNKNOWN_OPTIONS = ["нет","да","не знаю"];
+const TEMP_OPTIONS = ["не знаю","20°","30°","40°","60°","90°"];
+const FREQUENCY_OPTIONS = ["после каждого использования","после 2–3 использований","раз в неделю","по мере загрязнения","редко / по случаю"];
+
+function comboFieldHtml(prefix, fieldId, label, options, value){
+  const val = value || "";
+  const isPreset = options.includes(val);
+  const selId = `${prefix}_${fieldId}`;
+  const customId = `${prefix}_${fieldId}_custom`;
+  const optsHtml = options.map(o => `<option value="${escapeAttr(o)}" ${o === val ? "selected" : ""}>${escapeHtml(o)}</option>`).join("");
+  return `
+    <div class="field">
+      <label>${label}</label>
+      <select id="${selId}" data-custom-of="${customId}">
+        <option value="" ${!val ? "selected" : ""}>— не выбрано —</option>
+        ${optsHtml}
+        <option value="__custom__" ${(!isPreset && val) ? "selected" : ""}>✎ Свой вариант…</option>
+      </select>
+      <input type="text" class="custom-input ${(!isPreset && val) ? "show" : ""}" id="${customId}" value="${escapeAttr(!isPreset ? val : "")}" placeholder="Впиши свой вариант">
+    </div>
+  `;
+}
+
+function fieldsFormHtml(prefix, vals){
+  vals = vals || {};
+  const tagsStr = Array.isArray(vals.tags) ? vals.tags.join(" ") : "";
+  return `
+    <div class="grid">
+      <div class="field full">
+        <label>Название</label>
+        <input type="text" id="${prefix}_name" value="${escapeAttr(vals.name || "")}" placeholder="Название вещи">
+      </div>
+      ${comboFieldHtml(prefix, "type", "Тип", TYPE_OPTIONS, vals.type)}
+      ${comboFieldHtml(prefix, "material", "Материал", MATERIAL_OPTIONS, vals.material)}
+      ${comboFieldHtml(prefix, "color", "Цвет", COLOR_OPTIONS, vals.color)}
+      ${comboFieldHtml(prefix, "dirt", "Загрязнение", DIRT_OPTIONS, vals.dirt)}
+      ${comboFieldHtml(prefix, "bleed", "Линяет", YESNO_UNKNOWN_OPTIONS, vals.bleed)}
+      ${comboFieldHtml(prefix, "delicate", "Деликатная вещь", YESNO_UNKNOWN_OPTIONS, vals.delicate)}
+      ${comboFieldHtml(prefix, "temp", "Макс. температура по бирке", TEMP_OPTIONS, vals.temp)}
+      ${comboFieldHtml(prefix, "frequency", "Периодичность стирки", FREQUENCY_OPTIONS, vals.frequency)}
+      <div class="field full">
+        <label>Теги</label>
+        <input type="text" id="${prefix}_tags" value="${escapeAttr(tagsStr)}" placeholder="#Денис #верхняя-одежда #зима">
+        <div class="field-hint">Раздели теги пробелом. Решётку можно не ставить — добавим сама.</div>
+      </div>
+      <div class="field full">
+        <label>Постоянная информация</label>
+        <textarea id="${prefix}_notes" class="extra-textarea notes-textarea" placeholder="Информация, которая всегда актуальна для этой вещи — например «эта вещь Дениса» или «только ручная стирка, машинная запрещена»">${escapeHtml(vals.notes || "")}</textarea>
+        <div class="field-hint">Хранится всегда, не затрагивается кнопкой «Очистить все уточнения».</div>
+      </div>
+      <div class="field full">
+        <label>Дополнительно</label>
+        <textarea id="${prefix}_extra" class="extra-textarea" placeholder="Уточнения только для этой стирки — например «на рукаве пятно от кофе, попробовать вывести перед стиркой»">${escapeHtml(vals.extra || "")}</textarea>
+        <div class="field-hint">Актуально только для ближайшей стирки. Кнопка «Очистить все уточнения» во вкладке «Список вещей» разом обнулит это поле у всех карточек.</div>
+      </div>
+    </div>
+  `;
+}
+function readCombo(prefix, fieldId){
+  const sel = document.getElementById(`${prefix}_${fieldId}`);
+  if(!sel) return "";
+  if(sel.value === "__custom__"){
+    const customEl = document.getElementById(`${prefix}_${fieldId}_custom`);
+    const custom = customEl ? customEl.value.trim() : "";
+    return custom;
+  }
+  return sel.value;
+}
+function parseTags(raw){
+  return (raw || "")
+    .split(/[\s,]+/)
+    .map(t => t.trim())
+    .filter(Boolean)
+    .map(t => t.startsWith("#") ? t : "#" + t)
+    .filter((t, i, arr) => arr.indexOf(t) === i);
+}
+function readFieldsForm(prefix){
+  const name = document.getElementById(prefix + "_name").value.trim();
+  const extraEl = document.getElementById(prefix + "_extra");
+  const notesEl = document.getElementById(prefix + "_notes");
+  return {
+    name,
+    type: readCombo(prefix, "type") || "не указано",
+    material: readCombo(prefix, "material") || "не указано",
+    color: readCombo(prefix, "color") || "не указано",
+    dirt: readCombo(prefix, "dirt") || "не указано",
+    bleed: readCombo(prefix, "bleed") || "не указано",
+    delicate: readCombo(prefix, "delicate") || "не указано",
+    temp: readCombo(prefix, "temp") || "не знаю",
+    frequency: readCombo(prefix, "frequency") || "не указано",
+    tags: parseTags(document.getElementById(prefix + "_tags").value),
+    notes: notesEl ? notesEl.value.trim() : "",
+    extra: extraEl ? extraEl.value.trim() : ""
+  };
+}
+
+/* -- modal for creating / editing a card -- */
+const modalOverlay = document.getElementById("cardModalOverlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalBody = document.getElementById("modalBody");
+const modalDeleteBtn = document.getElementById("modalDeleteBtn");
+let modalMode = null;   // "new" | "edit"
+let modalItemId = null;
+let modalPhotos = [];   // array of dataURLs, first one = card preview photo
+let modalTouchedFields = new Set(); // какие поля пользователь реально трогал в этом открытии попапа
+
+function isComboFilled(prefix, key){
+  const sel = document.getElementById(`${prefix}_${key}`);
+  if(!sel) return false;
+  if(sel.value === "") return false;
+  if(sel.value === "__custom__"){
+    const custom = document.getElementById(`${prefix}_${key}_custom`);
+    return !!(custom && custom.value.trim());
+  }
+  return true;
+}
+function updateComboFillStyle(prefix, key){
+  const sel = document.getElementById(`${prefix}_${key}`);
+  const custom = document.getElementById(`${prefix}_${key}_custom`);
+  const filled = isComboFilled(prefix, key);
+  [sel, custom].forEach(el => {
+    if(!el) return;
+    el.classList.toggle("field-state-filled", filled);
+    el.classList.toggle("field-state-empty", !filled);
+  });
+}
+
+function wireModalTouchTracking(root){
+  const comboKeys = ["type", "material", "color", "dirt", "bleed", "delicate", "temp", "frequency"];
+  comboKeys.forEach(key => {
+    const sel = document.getElementById(`modal_${key}`);
+    const custom = document.getElementById(`modal_${key}_custom`);
+    if(sel){
+      sel.addEventListener("change", ()=>{
+        modalTouchedFields.add(key);
+        updateComboFillStyle("modal", key);
+      });
+    }
+    if(custom){
+      custom.addEventListener("input", ()=>{
+        modalTouchedFields.add(key);
+        updateComboFillStyle("modal", key);
+      });
+    }
+    updateComboFillStyle("modal", key); // начальная подсветка при открытии попапа
+  });
+  ["tags", "notes", "extra"].forEach(key => {
+    const el = document.getElementById(`modal_${key}`);
+    if(el) el.addEventListener("input", ()=> modalTouchedFields.add(key));
+  });
+  const nameEl = document.getElementById("modal_name");
+  if(nameEl) nameEl.addEventListener("input", ()=> modalTouchedFields.add("name"));
+}
+
+function photoBoxHtml(){
+  return `
+    <div class="field full" style="margin-top:14px;">
+      <label>Фото вещи</label>
+      <div class="photo-box" id="modalPhotoBox" tabindex="0">
+        <div class="photo-thumbs" id="modalPhotoThumbs"></div>
+        <div class="photo-placeholder" id="modalPhotoPlaceholder">📋 Скопируй фото (например скриншот или фото с телефона) и нажми Ctrl+V здесь — можно добавить несколько</div>
+      </div>
+    </div>
+  `;
+}
+function renderModalPhoto(){
+  const thumbs = document.getElementById("modalPhotoThumbs");
+  const placeholder = document.getElementById("modalPhotoPlaceholder");
+  if(!thumbs) return;
+  if(modalPhotos.length === 0){
+    thumbs.innerHTML = "";
+    placeholder.style.display = "flex";
+    return;
+  }
+  placeholder.style.display = "none";
+  thumbs.innerHTML = modalPhotos.map((src, idx) => `
+    <div class="photo-thumb-item ${idx === 0 ? "is-cover" : ""}">
+      <img src="${src}" alt="">
+      ${idx === 0 ? '<span class="photo-cover-badge">превью</span>' : ""}
+      <button type="button" class="photo-thumb-remove" data-idx="${idx}" title="Убрать фото">✕</button>
+    </div>
+  `).join("") + `<div class="photo-add-more" id="modalPhotoAddMore">＋ ещё<br>(Ctrl+V)</div>`;
+  thumbs.querySelectorAll(".photo-thumb-remove").forEach(btn => {
+    btn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.idx, 10);
+      modalPhotos.splice(idx, 1);
+      renderModalPhoto();
+    });
+  });
+  thumbs.querySelectorAll(".photo-thumb-item img").forEach((img, idx) => {
+    img.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      openLightbox(modalPhotos[idx]);
+    });
+  });
+}
+function resizeImageDataUrl(dataUrl, maxDim, callback){
+  const img = new Image();
+  img.onload = ()=>{
+    let w = img.width, h = img.height;
+    if(w > maxDim || h > maxDim){
+      if(w >= h){ h = Math.round(h * maxDim / w); w = maxDim; }
+      else { w = Math.round(w * maxDim / h); h = maxDim; }
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+    callback(canvas.toDataURL("image/jpeg", 0.82));
+  };
+  img.onerror = ()=> callback(dataUrl);
+  img.src = dataUrl;
+}
+// Ctrl+V вставка фото из буфера обмена, пока открыта модалка — можно добавлять несколько подряд
+document.addEventListener("paste", (e)=>{
+  if(!modalOverlay.classList.contains("show")) return;
+  const cd = e.clipboardData || window.clipboardData;
+  if(!cd || !cd.items) return;
+  let foundImage = false;
+  for(const item of cd.items){
+    if(item.type && item.type.indexOf("image") === 0){
+      foundImage = true;
+      const blob = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        resizeImageDataUrl(ev.target.result, 640, (resized)=>{
+          modalPhotos.push(resized);
+          renderModalPhoto();
+        });
+      };
+      reader.readAsDataURL(blob);
+    }
+  }
+  if(foundImage) e.preventDefault();
+});
+
+function dataUrlToBlob(dataUrl){
+  const commaIdx = dataUrl.indexOf(",");
+  const header = dataUrl.slice(0, commaIdx);
+  const base64 = dataUrl.slice(commaIdx + 1);
+  const mimeMatch = header.match(/data:([^;]+);base64/);
+  const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+  const bin = atob(base64);
+  const arr = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+const AI_FIELD_LABELS = {
+  type: "Тип", material: "Материал", color: "Цвет", dirt: "Загрязнение",
+  bleed: "Линяет", delicate: "Деликатная вещь", temp: "Макс. температура по бирке",
+  frequency: "Периодичность стирки"
+};
+const AI_FIELD_OPTIONS = {
+  type: TYPE_OPTIONS, material: MATERIAL_OPTIONS, color: COLOR_OPTIONS,
+  dirt: DIRT_OPTIONS, bleed: YESNO_UNKNOWN_OPTIONS, delicate: YESNO_UNKNOWN_OPTIONS, temp: TEMP_OPTIONS,
+  frequency: FREQUENCY_OPTIONS
+};
+
+function buildAiHelperPrompt(){
+  const vals = readFieldsForm("modal");
+  const name = vals.name || "(без названия)";
+  const knownLines = [];
+  const unknownLines = [];
+  ["type", "material", "color", "dirt", "bleed", "delicate", "temp", "frequency"].forEach(key => {
+    const label = AI_FIELD_LABELS[key];
+    if(modalTouchedFields.has(key)){
+      knownLines.push(`- ${label}: ${vals[key]}`);
+    } else {
+      const opts = AI_FIELD_OPTIONS[key];
+      unknownLines.push(`- ${label} (варианты: ${opts.join(", ")}; либо предложи свой)`);
+    }
+  });
+
+  let text = `Помоги мне заполнить карточку вещи для стирки. Отвечай кратко, в формате списка "Поле: значение", чтобы я мог(ла) скопировать ответ обратно в карточку.\n\n`;
+  text += `Название вещи: ${name}\n\n`;
+  if(knownLines.length){
+    text += `Я уже указал(а) сам(а):\n${knownLines.join("\n")}\n\n`;
+  }
+  if(unknownLines.length){
+    text += `Не уверен(а) в этих полях — определи их по фото вещи (если приложены) и по уже указанным полям выше:\n${unknownLines.join("\n")}\n\n`;
+  } else {
+    text += `Все поля я уже заполнил(а) сам(а) — просто сверься с фото и поправь, если что-то не сходится.\n\n`;
+  }
+  text += modalPhotos.length > 0
+    ? `К этому сообщению приложено фото вещи (${modalPhotos.length} шт.) — используй его для определения материала, цвета и прочих неочевидных деталей.`
+    : `Фото не прикреплено — ориентируйся только на текст выше.`;
+
+  return text;
+}
+
+async function copyAiHelperPrompt(){
+  const text = buildAiHelperPrompt();
+  const toast = document.getElementById("modalToast");
+
+  if(modalPhotos.length > 0 && navigator.clipboard && window.ClipboardItem){
+    try{
+      const clipboardItems = [
+        new ClipboardItem({ "text/plain": new Blob([text], { type: "text/plain" }) })
+      ];
+      modalPhotos.forEach(src => {
+        const blob = dataUrlToBlob(src);
+        clipboardItems.push(new ClipboardItem({ [blob.type]: blob }));
+      });
+      await navigator.clipboard.write(clipboardItems);
+      toast.textContent = `Скопировано: текст + ${modalPhotos.length} фото ✓`;
+      showToast(toast);
+      return;
+    }catch(err){
+      // некоторые браузеры не разрешают несколько ClipboardItem за раз — откатываемся на текст
+    }
+  }
+
+  try{
+    await navigator.clipboard.writeText(text);
+    toast.textContent = modalPhotos.length > 0
+      ? "Скопирован только текст — фото придётся прикрепить вручную"
+      : "Промпт скопирован ✓";
+    showToast(toast);
+  }catch(err){
+    alert("Не получилось скопировать автоматически. Вот текст промпта — скопируй вручную:\n\n" + text);
+  }
+}
+
+function openModal(mode, it){
+  modalMode = mode;
+  modalItemId = it ? it.id : null;
+  modalPhotos = (it && Array.isArray(it.photos)) ? it.photos.slice()
+              : (it && it.photo) ? [it.photo]
+              : [];
+  modalTouchedFields = new Set();
+  modalTitle.textContent = mode === "new" ? "Новая карточка вещи" : "Редактировать вещь";
+  modalBody.innerHTML = fieldsFormHtml("modal", it || {}) + photoBoxHtml();
+  wireComboSelects(modalBody);
+  wireModalTouchTracking(modalBody);
+  modalDeleteBtn.style.display = mode === "edit" ? "" : "none";
+  modalOverlay.classList.add("show");
+  renderModalPhoto();
+  document.getElementById("modal_name").focus();
+}
+function closeModal(){
+  modalOverlay.classList.remove("show");
+  modalMode = null;
+  modalItemId = null;
+  modalPhotos = [];
+}
+document.getElementById("modalCloseBtn").addEventListener("click", closeModal);
+document.getElementById("modalCancelBtn").addEventListener("click", closeModal);
+document.getElementById("modalAiHelpBtn").addEventListener("click", copyAiHelperPrompt);
+modalOverlay.addEventListener("click", (e)=>{
+  if(e.target === modalOverlay) closeModal();
+});
+document.addEventListener("keydown", (e)=>{
+  if(e.key !== "Escape") return;
+  if(photoLightbox.classList.contains("show")){ closeLightbox(); return; }
+  if(modalOverlay.classList.contains("show")) closeModal();
+});
+
+document.getElementById("modalSaveBtn").addEventListener("click", ()=>{
+  const vals = readFieldsForm("modal");
+  if(!vals.name){
+    document.getElementById("modal_name").focus();
+    return;
+  }
+  vals.photos = modalPhotos.slice();
+  delete vals.photo;
+  if(modalMode === "new"){
+    items.push(Object.assign({id: makeId()}, vals));
+  } else {
+    const it = items.find(x => x.id === modalItemId);
+    if(it){
+      Object.assign(it, vals);
+      delete it.photo;
+    }
+  }
+  let ok = true;
+  try{
+    saveItems();
+  }catch(e){
+    ok = false;
+    alert("Не получилось сохранить: возможно, фото слишком большие для локального хранилища браузера. Попробуй фото поменьше или удали одно из них.");
+  }
+  if(ok){
+    renderLibrary();
+    closeModal();
+  }
+});
+modalDeleteBtn.addEventListener("click", ()=>{
+  const it = items.find(x => x.id === modalItemId);
+  if(it && confirm(`Удалить «${it.name}» из списка вещей?`)){
+    items = items.filter(x => x.id !== it.id);
+    selectedIds.delete(it.id);
+    saveItems();
+    renderLibrary();
+    closeModal();
+  }
+});
+
+const libAddToggle = document.getElementById("libAddToggle");
+libAddToggle.addEventListener("click", ()=> openModal("new", null));
+
+document.getElementById("libClearExtraBtn").addEventListener("click", ()=>{
+  if(items.length === 0){
+    alert("Список вещей пуст — нечего очищать.");
+    return;
+  }
+  const withNotes = items.filter(it => it.extra && it.extra.trim()).length;
+  if(withNotes === 0){
+    alert("Ни у одной карточки нет заполненного поля «Дополнительно».");
+    return;
+  }
+  if(confirm(`Обнулить поле «Дополнительно» у всех карточек? Уточнений будет очищено: ${withNotes}. Остальные поля (тип, материал, фото, теги и т.д.) не изменятся.`)){
+    items.forEach(it => { it.extra = ""; });
+    saveItems();
+    renderLibrary();
+    showToast(document.getElementById("libToast"));
+  }
+});
+
+/* -- library grid rendering -- */
+const libraryList = document.getElementById("libraryList");
+const libSelectAll = document.getElementById("libSelectAll");
+const libSelCount = document.getElementById("libSelCount");
+const libAddToPromptBtn = document.getElementById("libAddToPromptBtn");
+const filterGroupsEl = document.getElementById("filterGroups");
+const filterActiveBadge = document.getElementById("filterActiveBadge");
+
+// filterState: key = JSON.stringify([category, value]) -> "include" | "exclude"
+// category is "tag" or a field key (type/material/color/dirt/bleed/delicate/temp/frequency)
+let filterState = new Map();
+
+function getFilterState(category, value){
+  return filterState.get(JSON.stringify([category, value])) || "neutral";
+}
+function cycleFilter(category, value){
+  const key = JSON.stringify([category, value]);
+  const cur = filterState.get(key) || "neutral";
+  if(cur === "neutral") filterState.set(key, "include");
+  else if(cur === "include") filterState.set(key, "exclude");
+  else filterState.delete(key);
+  renderLibrary();
+}
+function getVisibleItems(){
+  if(filterState.size === 0) return items;
+  const byCategory = {};
+  filterState.forEach((state, key)=>{
+    const [category, value] = JSON.parse(key);
+    if(!byCategory[category]) byCategory[category] = { include: [], exclude: [] };
+    byCategory[category][state].push(value);
+  });
+  return items.filter(it => {
+    for(const category in byCategory){
+      const { include, exclude } = byCategory[category];
+      const itemValues = category === "tag" ? (it.tags || []) : [it[category]];
+      if(exclude.length && itemValues.some(v => exclude.includes(v))) return false;
+      if(include.length && !itemValues.some(v => include.includes(v))) return false;
+    }
+    return true;
+  });
+}
+
+function updateBulkBar(visibleItems){
+  const n = selectedIds.size;
+  libSelCount.textContent = n > 0 ? `(${n})` : "";
+  libAddToPromptBtn.disabled = n === 0;
+  const visN = visibleItems.filter(it => selectedIds.has(it.id)).length;
+  libSelectAll.checked = visibleItems.length > 0 && visN === visibleItems.length;
+  libSelectAll.indeterminate = visN > 0 && visN < visibleItems.length;
+  document.getElementById("floatLibCount").textContent = items.length;
+}
+
+document.getElementById("floatLibBtn").addEventListener("click", ()=>{
+  setActiveTab("library");
+  const target = document.querySelector(".card");
+  if(target && typeof target.scrollIntoView === "function"){
+    target.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+});
+
+function getAllTags(){
+  const set = new Set();
+  items.forEach(it => (it.tags || []).forEach(t => set.add(t)));
+  return Array.from(set).sort((a, b) => a.localeCompare(b, "ru"));
+}
+function getFieldValues(fieldKey){
+  const set = new Set();
+  items.forEach(it => {
+    const v = it[fieldKey];
+    if(v) set.add(v);
+  });
+  return Array.from(set).sort((a, b) => a.localeCompare(b, "ru"));
+}
+
+const FILTERABLE_FIELDS = [
+  { key: "type", label: "Тип" },
+  { key: "material", label: "Материал" },
+  { key: "color", label: "Цвет" },
+  { key: "dirt", label: "Загрязнение" },
+  { key: "bleed", label: "Линяет" },
+  { key: "delicate", label: "Деликатная вещь" },
+  { key: "temp", label: "Макс. температура" },
+  { key: "frequency", label: "Периодичность стирки" }
+];
+
+function chipHtml(category, value, label){
+  const state = getFilterState(category, value);
+  const cls = state === "include" ? "tag-chip active" : state === "exclude" ? "tag-chip excluded" : "tag-chip";
+  const prefix = state === "exclude" ? "🚫 " : "";
+  return `<button type="button" class="${cls}" data-cat="${escapeAttr(category)}" data-val="${escapeAttr(value)}">${prefix}${escapeHtml(label)}</button>`;
+}
+
+function renderFilterGroups(){
+  const groups = [];
+
+  const allTags = getAllTags();
+  if(allTags.length > 0){
+    groups.push(`
+      <div class="filter-group">
+        <div class="filter-group-label">Теги</div>
+        <div class="filter-chip-row">${allTags.map(t => chipHtml("tag", t, t)).join("")}</div>
+      </div>
+    `);
+  }
+
+  FILTERABLE_FIELDS.forEach(f => {
+    const values = getFieldValues(f.key);
+    if(values.length === 0) return;
+    groups.push(`
+      <div class="filter-group">
+        <div class="filter-group-label">${escapeHtml(f.label)}</div>
+        <div class="filter-chip-row">${values.map(v => chipHtml(f.key, v, v)).join("")}</div>
+      </div>
+    `);
+  });
+
+  filterGroupsEl.innerHTML = groups.join("") || '<div class="filter-hint">Пока нет данных для фильтрации — добавь хотя бы одну карточку.</div>';
+  filterGroupsEl.querySelectorAll("[data-cat][data-val]").forEach(chip => {
+    chip.addEventListener("click", ()=> cycleFilter(chip.dataset.cat, chip.dataset.val));
+  });
+
+  if(filterState.size > 0){
+    filterActiveBadge.textContent = filterState.size;
+    filterActiveBadge.style.display = "";
+  } else {
+    filterActiveBadge.style.display = "none";
+  }
+}
+
+document.getElementById("filterResetAllBtn").addEventListener("click", ()=>{
+  filterState.clear();
+  renderLibrary();
+});
+
+function tagsPillsHtml(tags){
+  if(!tags || tags.length === 0) return "";
+  return `<div class="lib-tags">${tags.map(t => `<span class="lib-tag">${escapeHtml(t)}</span>`).join("")}</div>`;
+}
+
+/* -- fullscreen photo lightbox -- */
+const photoLightbox = document.getElementById("photoLightbox");
+const lightboxImg = document.getElementById("lightboxImg");
+function openLightbox(src){
+  lightboxImg.src = src;
+  photoLightbox.classList.add("show");
+}
+function closeLightbox(){
+  photoLightbox.classList.remove("show");
+  lightboxImg.src = "";
+}
+document.getElementById("lightboxCloseBtn").addEventListener("click", closeLightbox);
+photoLightbox.addEventListener("click", (e)=>{
+  if(e.target === photoLightbox || e.target === lightboxImg) closeLightbox();
+});
+
+function renderLibrary(){
+  renderFilterGroups();
+  libraryList.innerHTML = "";
+
+  if(items.length === 0){
+    libraryList.innerHTML = '<div class="lib-empty">Пока пусто. Нажми «＋ Новая карточка», или поставь галочку «сохранить карточку во “Список вещей”» в форме «Добавить вещь в запрос» ниже — карточка появится здесь автоматически.</div>';
+    updateBulkBar([]);
+    return;
+  }
+
+  const visibleItems = getVisibleItems();
+
+  if(visibleItems.length === 0){
+    libraryList.innerHTML = '<div class="lib-empty">Нет карточек, подходящих под выбранные фильтры.</div>';
+    updateBulkBar(visibleItems);
+    return;
+  }
+
+  visibleItems.forEach(it => {
+    const card = document.createElement("div");
+    card.className = "lib-card";
+    const checked = selectedIds.has(it.id) ? "checked" : "";
+    const coverPhoto = (it.photos && it.photos[0]) ? it.photos[0] : null;
+    card.innerHTML = `
+      <input type="checkbox" data-id="${it.id}" ${checked}>
+      <button class="btn-icon danger lib-delete" title="Удалить">✕</button>
+      ${coverPhoto ? `<img class="lib-thumb" src="${coverPhoto}" alt="" title="Открыть на весь экран">` : ""}
+      <div class="lib-name">${escapeHtml(it.name)}</div>
+      ${tagsPillsHtml(it.tags)}
+      ${(it.notes && it.notes.trim()) ? `<div class="lib-notes-note">📌 ${escapeHtml(it.notes.trim())}</div>` : ""}
+      ${(it.extra && it.extra.trim()) ? `<div class="lib-extra-note">📝 ${escapeHtml(it.extra.trim())}</div>` : ""}
+      <div class="lib-card-edit-hint">нажми на карточку, чтобы открыть</div>
+    `;
+    // клик по превью фото — открыть на весь экран, не открывая карточку
+    const thumbEl = card.querySelector(".lib-thumb");
+    if(thumbEl){
+      thumbEl.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        openLightbox(coverPhoto);
+      });
+    }
+    // клик по карточке (кроме чекбокса, фото и кнопки удаления) открывает модалку с заполненными полями
+    card.addEventListener("click", (e)=>{
+      if(e.target.closest('input[type=checkbox]') || e.target.closest('.lib-delete') || e.target.closest('.lib-thumb')) return;
+      openModal("edit", it);
+    });
+    card.querySelector('input[type=checkbox]').addEventListener("click", (e)=>{
+      e.stopPropagation();
+    });
+    card.querySelector('input[type=checkbox]').addEventListener("change", (e)=>{
+      if(e.target.checked) selectedIds.add(it.id); else selectedIds.delete(it.id);
+      updateBulkBar(visibleItems);
+    });
+    card.querySelector('.lib-delete').addEventListener("click", (e)=>{
+      e.stopPropagation();
+      if(confirm(`Удалить «${it.name}» из списка вещей?`)){
+        items = items.filter(x => x.id !== it.id);
+        selectedIds.delete(it.id);
+        saveItems();
+        renderLibrary();
+      }
+    });
+    libraryList.appendChild(card);
+  });
+
+  updateBulkBar(visibleItems);
+}
+
+libSelectAll.addEventListener("change", ()=>{
+  const visibleItems = getVisibleItems();
+  if(libSelectAll.checked){
+    visibleItems.forEach(it => selectedIds.add(it.id));
+  } else {
+    visibleItems.forEach(it => selectedIds.delete(it.id));
+  }
+  renderLibrary();
+});
+
+libAddToPromptBtn.addEventListener("click", ()=>{
+  const chosen = items.filter(it => selectedIds.has(it.id));
+  chosen.forEach(it => insertItemLine(itemLineText(it)));
+  selectedIds.clear();
+  renderLibrary();
+  setActiveTab("preview");
+  showToast(document.getElementById("toast"));
+});
+
+/* ---- "Добавить вещь в запрос" quick form: inserts into prompt AND saves to library ---- */
+document.getElementById("addBtn").addEventListener("click", ()=>{
+  const name = document.getElementById("i_name").value.trim();
+  if(!name){
+    document.getElementById("i_name").focus();
+    return;
+  }
+  const it = {
+    id: makeId(),
+    name,
+    type: selectValue("i_type", "c_type"),
+    material: selectValue("i_material", "c_material"),
+    color: selectValue("i_color", "c_color"),
+    dirt: selectValue("i_dirt", "c_dirt"),
+    bleed: selectValue("i_bleed", "c_bleed"),
+    delicate: selectValue("i_delicate", "c_delicate"),
+    temp: selectValue("i_temp", "c_temp"),
+    tags: [],
+    photos: [],
+    notes: "",
+    extra: "",
+    frequency: "не указано"
+  };
+
+  insertItemLine(itemLineText(it));
+
+  const shouldSave = document.getElementById("saveToLibraryCb").checked;
+  if(shouldSave){
+    items.push(it);
+    saveItems();
+    if(tabLibraryBtn.classList.contains("active")) renderLibrary();
+    else document.getElementById("floatLibCount").textContent = items.length;
+  }
+
+  document.getElementById("i_name").value = "";
+  document.getElementById("i_name").focus();
+  document.getElementById("toast2").textContent = shouldSave ? "Добавлено в промпт и в список ✓" : "Добавлено в промпт ✓";
+  showToast(document.getElementById("toast2"));
+});
+
+/* ---- init ---- */
+loadItems();
+document.getElementById("floatLibCount").textContent = items.length;
+</script>
+</body>
+</html>
